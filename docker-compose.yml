@@ -1,0 +1,64 @@
+
+
+services:
+  # The backend API Gateway
+  api_gateway:
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80" # Backend now on port 8080
+    volumes:
+      - ./api_gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # The new frontend service
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80" # Frontend accessible on the standard HTTP port
+    restart: unless-stopped
+    depends_on:
+      - api_gateway
+
+  backend:
+    build: ./backend
+    env_file: .env
+    # No longer need to expose port 8000, as api_gateway handles it
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+
+  worker:
+    build: ./backend
+    command: celery -A app.workers.celery_app.celery worker --loglevel=info
+    env_file: .env
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

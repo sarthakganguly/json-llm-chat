@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+celery
+redis
+python-dotenv
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
+requests
+pgvector
+sentence-transformers
+python-multipart # For file uploads
+pydantic-settings
