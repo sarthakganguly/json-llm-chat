@@ -1,30 +1,17 @@
-
-
 services:
-  # The backend API Gateway
-  api_gateway:
-    image: nginx:1.25-alpine
+  gateway:
+    build:
+      context: .
+      dockerfile: api_gateway/Dockerfile
     ports:
-      - "8080:80" # Backend now on port 8080
-    volumes:
-      - ./api_gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
 
-  # The new frontend service
-  frontend:
-    build: ./frontend
-    ports:
-      - "80:80" # Frontend accessible on the standard HTTP port
-    restart: unless-stopped
-    depends_on:
-      - api_gateway
-
   backend:
     build: ./backend
     env_file: .env
-    # No longer need to expose port 8000, as api_gateway handles it
     volumes:
       - ./backend/app:/app/app
     depends_on:
@@ -59,6 +46,8 @@ services:
       - redis
       - postgres
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
 
 volumes:
   postgres_data:

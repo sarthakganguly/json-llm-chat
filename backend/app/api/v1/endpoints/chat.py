@@ -8,21 +8,32 @@ from app.services import rag_service
 
 router = APIRouter()
 
+# This new dependency function correctly wires everything together for FastAPI.
+def get_current_tenant_db(current_user: User = Depends(get_current_user)):
+    """
+    A dependency that first gets the current user, then yields a database session
+    that is correctly configured for that user's specific tenant schema.
+    """
+    # get_tenant_db(tenant_id) returns a generator function (our dependency)
+    db_session_generator = get_tenant_db(current_user.tenant_id)
+
+    # We call the generator function to get the actual generator, then iterate
+    for db in db_session_generator():
+        try:
+            yield db
+        finally:
+            # The original generator in session.py handles closing the session.
+            pass
+
 @router.post("/chat", response_model=ChatResponse)
 def chat_with_documents(
     request: ChatRequest,
-    current_user: User = Depends(get_current_user)
+    # The endpoint now correctly receives the tenant-specific db session
+    # directly as a parameter, thanks to our new dependency.
+    db: Session = Depends(get_current_tenant_db)
 ):
-    # The user object from get_current_user has the tenant_id attached.
-    tenant_id = current_user.tenant_id
-    
-    # Create a tenant-specific DB session dependency
-    tenant_db_session = Depends(get_tenant_db(tenant_id))
-    
-    # Resolve the dependency to get the actual session
-    for db in tenant_db_session():
-        try:
-            response = rag_service.get_answer_from_rag(query=request.query, db=db)
-            return ChatResponse(**response)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    try:
+        response = rag_service.get_answer_from_rag(query=request.query, db=db)
+        return ChatResponse(**response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

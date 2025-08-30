@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  // All API calls will now be relative to the root URL (e.g., /api/v1/...)
+  baseURL: '/api/v1',
 });
 
 // This interceptor automatically adds the auth token to every request

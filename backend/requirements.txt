@@ -13,3 +13,4 @@ pgvector
 sentence-transformers
 python-multipart # For file uploads
 pydantic-settings
+google-generativeai

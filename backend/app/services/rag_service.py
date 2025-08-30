@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sentence_transformers import SentenceTransformer
 from app.db.models import DocumentChunk
-from app.services import perplexity_service
+from app.services import gemini_service
 
 def get_answer_from_rag(query: str, db: Session):
     # 1. Embed the user's query
@@ -29,5 +29,5 @@ def get_answer_from_rag(query: str, db: Session):
     """
     
     # 4. Call Perplexity Pro and get the final answer
-    final_answer = perplexity_service.query_perplexity(prompt)
+    final_answer = gemini_service.query_gemini(prompt)
     return {"answer": final_answer, "context_used": context_text}

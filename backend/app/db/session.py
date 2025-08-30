@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
@@ -20,7 +20,8 @@ def get_tenant_db(tenant_id: str):
         try:
             # Set the schema for the current session
             with db.begin():
-                db.execute(f"SET search_path TO {tenant_id}, public")
+                # Use the text() construct for executing raw SQL statements.
+                db.execute(text(f"SET search_path TO {tenant_id}, public"))
             yield db
         finally:
             db.close()

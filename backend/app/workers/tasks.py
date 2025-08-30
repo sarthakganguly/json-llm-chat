@@ -1,6 +1,7 @@
 import time
 from .celery_app import celery
 from sentence_transformers import SentenceTransformer
+from sqlalchemy import text
 from app.db.session import SessionLocal
 from app.db.models import DocumentChunk
 
@@ -32,9 +33,12 @@ def process_json_file(file_path: str, tenant_id: str):
     # 4. Store in PostgreSQL with pgvector for the correct tenant
     db = SessionLocal()
     try:
+        # The 'with db.begin()' block manages the entire transaction.
+        # It automatically commits on success or rolls back on failure.
         with db.begin():
-            db.execute(f'CREATE SCHEMA IF NOT EXISTS {tenant_id}')
-            db.execute(f'SET search_path TO {tenant_id}, public')
+            # Use the text() construct for executing raw SQL statements.
+            db.execute(text(f'CREATE SCHEMA IF NOT EXISTS {tenant_id}'))
+            db.execute(text(f'SET search_path TO {tenant_id}, public'))
             
             for i, chunk_text in enumerate(chunks):
                 doc_chunk = DocumentChunk(
@@ -42,10 +46,9 @@ def process_json_file(file_path: str, tenant_id: str):
                     embedding=embeddings[i]
                 )
                 db.add(doc_chunk)
-            db.commit()
     except Exception as e:
-        db.rollback()
         print(f"Error during DB operation for tenant {tenant_id}: {e}")
+        # Re-raise the exception so the Celery task is marked as 'FAILED'.
         raise
     finally:
         db.close()
