@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
-from sentence_transformers import SentenceTransformer
 from app.db.models import DocumentChunk
 from app.services import gemini_service
+# Import the pre-loaded model instance
+from app.services.embedding_service import embedding_model
 
 def get_answer_from_rag(query: str, db: Session):
-    # 1. Embed the user's query
-    embedding_model = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
+    # 1. Embed the user's query using the pre-loaded model.
     query_embedding = embedding_model.encode(query)
 
     # 2. Retrieve relevant chunks from the database
@@ -19,7 +19,7 @@ def get_answer_from_rag(query: str, db: Session):
 
     context_text = "\n- ".join([chunk.text for chunk in relevant_chunks])
     
-    # 3. Construct the prompt for Perplexity Pro
+    # 3. Construct the prompt for the Gemini API
     prompt = f"""
     Context from financial records:
     - {context_text}
@@ -28,6 +28,6 @@ def get_answer_from_rag(query: str, db: Session):
     Question: "{query}"
     """
     
-    # 4. Call Perplexity Pro and get the final answer
+    # 4. Call the Google Gemini API and get the final answer
     final_answer = gemini_service.query_gemini(prompt)
     return {"answer": final_answer, "context_used": context_text}

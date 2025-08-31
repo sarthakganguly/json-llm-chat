@@ -8,8 +8,9 @@ def query_gemini(prompt: str) -> str:
     """
     Sends a prompt to the Google Gemini Pro model and returns the response.
     """
-    # For text-only input, use the gemini-pro model
-    model = genai.GenerativeModel('gemini-pro')
+    # Use the current and recommended model name: 'gemini-1.5-flash'.
+    # It is fast, capable, and cost-effective.
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     # System instructions can be part of the prompt for Gemini
     system_enhanced_prompt = (
