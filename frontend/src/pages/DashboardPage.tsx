@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import ChatInterface from '../components/ChatInterface';
 import FileUpload from '../components/FileUpload';
+// Make sure Grid is correctly imported from '@mui/material'
+import { Grid, Typography } from '@mui/material';
 
 export default function DashboardPage() {
     const [lastUploadTime, setLastUploadTime] = useState(Date.now());
@@ -10,18 +12,23 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-slate-800 mb-6">Dashboard</h1>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                {/* Left Column for Upload */}
-                <div className="xl:col-span-1">
+        <>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+                Dashboard
+            </Typography>
+            {/* 
+              THIS IS THE FIX:
+              Ensure you have a <Grid container> wrapping the <Grid item> components.
+              The 'item' prop is a boolean passed to the Grid component.
+            */}
+            <Grid container spacing={4} alignItems="flex-start">
+                <Grid item xs={12} md={4}>
                     <FileUpload onUploadSuccess={handleUploadSuccess} />
-                </div>
-                {/* Right Column for Chat */}
-                <div className="xl:col-span-2">
+                </Grid>
+                <Grid item xs={12} md={8}>
                     <ChatInterface key={lastUploadTime} />
-                </div>
-            </div>
-        </div>
+                </Grid>
+            </Grid>
+        </>
     );
 }

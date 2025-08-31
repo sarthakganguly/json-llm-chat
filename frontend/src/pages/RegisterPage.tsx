@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { Container, Paper, Typography, TextField, Button, Box, Link, CircularProgress, Alert } from '@mui/material';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -15,95 +16,57 @@ export default function RegisterPage() {
     setError('');
     setIsLoading(true);
     try {
-      await api.post('/auth/users/', {
-        email,
-        password,
-        tenant_name: tenantName,
-      });
+      await api.post('/auth/users/', { email, password, tenant_name: tenantName });
       navigate('/login');
     } catch (err) {
       setError('Failed to register. The email might already be in use.');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center py-12">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
-        <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-800">Create an Account</h1>
-            <p className="text-slate-500">Get started with your financial data</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="tenantName"
-              className="block text-sm font-medium text-slate-700"
-            >
-              Company / Tenant Name
-            </label>
-            <input
-              id="tenantName"
-              type="text"
-              value={tenantName}
-              onChange={(e) => setTenantName(e.target.value)}
-              required
-              className="w-full px-4 py-2 mt-1 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your Company Inc."
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-700"
-            >
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 mt-1 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 mt-1 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="••••••••"
-            />
-          </div>
-          {error && <p className="text-sm text-center text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:bg-slate-400"
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Box textAlign="center" mb={3}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Create an Account
+          </Typography>
+          <Typography color="text.secondary">
+            Get started with your financial data
+          </Typography>
+        </Box>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <TextField
+            margin="normal" required fullWidth id="tenantName"
+            label="Company / Tenant Name" name="tenantName" autoFocus
+            value={tenantName} onChange={(e) => setTenantName(e.target.value)}
+          />
+          <TextField
+            margin="normal" required fullWidth id="email"
+            label="Email Address" name="email" autoComplete="email"
+            value={email} onChange={(e) => setEmail(e.target.value)}
+          />
+          <TextField
+            margin="normal" required fullWidth name="password" label="Password"
+            type="password" id="password"
+            value={password} onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+          <Button
+            type="submit" fullWidth variant="contained"
+            sx={{ mt: 3, mb: 2, py: 1.5 }} disabled={isLoading}
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-         <p className="text-sm text-center text-slate-500">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-blue-600 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
+          </Button>
+          <Typography align="center" color="text.secondary">
+            Already have an account?{' '}
+            <Link component={RouterLink} to="/login" variant="body2">
+              Sign in
+            </Link>
+          </Typography>
+        </Box>
+      </Paper>
+    </Container>
   );
 }

@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import api from '../services/api';
-import { SendHorizonal } from 'lucide-react';
+import { Paper, Box, Typography, TextField, IconButton, Avatar, CircularProgress } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import PersonIcon from '@mui/icons-material/Person';
 
-interface Message {
-  sender: 'user' | 'bot';
-  text: string;
-}
+interface Message { sender: 'user' | 'bot'; text: string; }
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -13,87 +13,79 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(scrollToBottom, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
-
     const userMessage: Message = { sender: 'user', text: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-
     try {
       const response = await api.post('/query/chat', { query: input });
       const botMessage: Message = { sender: 'bot', text: response.data.answer };
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
-      console.error(err);
       const errorMessage: Message = { sender: 'bot', text: 'Sorry, I encountered an error while fetching a response.' };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
-    <div className="flex flex-col h-[calc(100vh-15rem)] max-h-[700px] bg-white rounded-xl shadow-md">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold text-slate-800">Chat with your Data</h2>
-      </div>
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+    <Paper elevation={3} sx={{ height: '75vh', display: 'flex', flexDirection: 'column' }}>
+      <Box p={2} borderBottom={1} borderColor="divider">
+        <Typography variant="h6" component="h2">Chat with your Data</Typography>
+      </Box>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 3 }}>
         {messages.length === 0 && !isLoading && (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
-                <p>Upload a document and ask a question to start.</p>
-            </div>
+          <Box display="flex" alignItems="center" justifyContent="center" height="100%" color="text.secondary">
+            <Typography>Upload a document and ask a question to start.</Typography>
+          </Box>
         )}
         {messages.map((msg, index) => (
-          <div key={index} className={`flex items-start gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-            {/* Avatar Placeholder */}
-            <div className={`w-8 h-8 rounded-full flex-shrink-0 ${msg.sender === 'user' ? 'bg-blue-600' : 'bg-slate-700'} `}></div>
-            <div className={`max-w-xl px-4 py-3 rounded-2xl ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-slate-200 text-slate-800 rounded-bl-none'}`}>
-              <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</p>
-            </div>
-          </div>
+          <Box key={index} display="flex" justifyContent={msg.sender === 'user' ? 'flex-end' : 'flex-start'} mb={2}>
+            {msg.sender === 'bot' && <Avatar sx={{ bgcolor: 'secondary.main', mr: 1.5 }}><SmartToyIcon /></Avatar>}
+            <Paper
+              elevation={1}
+              sx={{
+                p: 1.5,
+                maxWidth: '70%',
+                bgcolor: msg.sender === 'user' ? 'primary.main' : 'background.default',
+                color: msg.sender === 'user' ? 'primary.contrastText' : 'text.primary',
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              <Typography variant="body1">{msg.text}</Typography>
+            </Paper>
+            {msg.sender === 'user' && <Avatar sx={{ bgcolor: 'primary.main', ml: 1.5 }}><PersonIcon /></Avatar>}
+          </Box>
         ))}
-         {isLoading && (
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full flex-shrink-0 bg-slate-700"></div>
-               <div className="px-4 py-3 rounded-2xl rounded-bl-none bg-slate-200 text-slate-800">
-                  <div className="flex items-center justify-center gap-1">
-                    <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="h-2 w-2 bg-slate-400 rounded-full animate-bounce"></span>
-                  </div>
-               </div>
-            </div>
-         )}
+        {isLoading && (
+          <Box display="flex" justifyContent="flex-start" mb={2}>
+            <Avatar sx={{ bgcolor: 'secondary.main', mr: 1.5 }}><SmartToyIcon /></Avatar>
+            <Paper elevation={1} sx={{ p: 1.5, bgcolor: 'background.default' }}>
+              <CircularProgress size={20} />
+            </Paper>
+          </Box>
+        )}
         <div ref={messagesEndRef} />
-      </div>
-      <div className="p-4 bg-slate-50 border-t">
-        <div className="flex items-center space-x-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+      </Box>
+      <Box p={2} borderTop={1} borderColor="divider" component="form" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
+        <Box display="flex" alignItems="center">
+          <TextField
+            fullWidth variant="outlined" placeholder="Ask a question..."
+            value={input} onChange={(e) => setInput(e.target.value)}
+            disabled={isLoading} autoComplete="off"
             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-            placeholder="Ask a question..."
-            className="flex-1 w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isLoading}
           />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="p-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-slate-400"
-          >
-            <SendHorizonal className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-    </div>
+          <IconButton color="primary" type="submit" disabled={isLoading} sx={{ ml: 1 }}>
+            <SendIcon />
+          </IconButton>
+        </Box>
+      </Box>
+    </Paper>
   );
 }

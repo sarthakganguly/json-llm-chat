@@ -1,6 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, BotMessageSquare } from 'lucide-react';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import ChatIcon from '@mui/icons-material/Chat';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export default function Navbar() {
   const { isAuthenticated, logout } = useAuth();
@@ -12,43 +14,33 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-slate-800">
-              <BotMessageSquare className="text-blue-600" />
-              <span>FinChat</span>
-            </Link>
-          </div>
-          <div className="flex items-center">
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </button>
-            ) : (
-              <div className="space-x-2">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
+    <AppBar position="sticky" sx={{ bgcolor: 'background.paper', borderBottom: '1px solid #334155' }}>
+      <Toolbar>
+        <ChatIcon color="primary" sx={{ mr: 1 }} />
+        <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit' }}>
+          FinChat
+        </Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        {isAuthenticated ? (
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        ) : (
+          <Box>
+            <Button component={RouterLink} to="/login" color="inherit">
+              Login
+            </Button>
+            <Button component={RouterLink} to="/register" variant="contained" color="primary" sx={{ ml: 1 }}>
+              Register
+            </Button>
+          </Box>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 }
