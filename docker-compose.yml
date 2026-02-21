@@ -4,7 +4,8 @@ services:
       context: .
       dockerfile: api_gateway/Dockerfile
     ports:
-      - "80:80"
+      # The local port is now 3001, which is very likely to be free.
+      - "3001:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -19,7 +20,6 @@ services:
       - redis
     restart: unless-stopped
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    # This provides a reliable public DNS server to the container.
     dns:
       - 8.8.8.8
 
@@ -49,7 +49,6 @@ services:
       - redis
       - postgres
     restart: unless-stopped
-    # This provides a reliable public DNS server to the container.
     dns:
       - 8.8.8.8
 
